@@ -1,0 +1,19 @@
+.sidebar{
+    width: 240px;
+    height: 100%;
+    position: fixed;
+    left: 0;
+    top: 0;
+}
+
+.main-header{
+    height: 120px;
+}
+main{
+    margin-left: 240px;
+}
+
+.nav-pills .nav-link:hover{
+    background-color: #0d6efd;
+    color: white;
+}
