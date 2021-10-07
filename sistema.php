@@ -12,10 +12,7 @@
 	}
 
     $pagina = "inicio";
-?>
 
-<?php
-	
 	include "conecta.php";
 
 	if($logado != "Byte OS"){
@@ -57,7 +54,10 @@
 
 $soma = $reg1 + $reg2;
 
+include "situacaoTicket.php";
+
 ?>
+
 <!doctype html>
 <html lang="pt-br">
 
@@ -83,7 +83,7 @@ $soma = $reg1 + $reg2;
             <div class="row">
                 <div class="col">
                     <div class="main-header text-center">
-                        <h3 class="p-4">Bem-Vindo <?php echo "$logado";?>!</h3>
+                        <h3 class="p-4">Bem-Vindo <?=$logado?>!</h3>
                     </div>
                 </div>
             </div>
@@ -104,14 +104,14 @@ $soma = $reg1 + $reg2;
                 <div class="col col-lg-3">
                     <div class="card">
                         <div class="card-header">
-                            Total de Tickets = <?php echo"$soma"?>
+                            Total de Tickets = <?=$soma?>
                         </div>
                         <div class="card-body">
                             <div class="alert alert-danger" role="alert">
-                                Em Aberto = <?php echo"$reg1"?>
+                                Em Aberto = <?=$reg1?>
                             </div>
                             <div class="alert alert-success" role="alert">
-                                Encerrado = <?php echo"$reg2"?>
+                                Encerrado = <?=$reg2?>
                             </div>
                         </div>
                     </div>
@@ -137,39 +137,35 @@ $soma = $reg1 + $reg2;
                                         <th scope="col">Ações</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-<?php   while($reg2 = $res->fetch_array()){
+                                    <tbody>
+                                    
+<?php   while($reg2 = $res->fetch_array()){?>
 
-if($reg2['te_situacao'] == 'Em Aberto'){
-    $cor = 'class="text-danger"';
-}  if($reg2['te_situacao'] == 'Encerrada'){
-    $cor = 'class="text-success"';
-}
-
-echo	"<tr>
-        <td scope='row'>".$reg2['id_ticket']."</td>";
-
+        <tr>
+            <td scope='row'><?=$reg2['id_ticket']?></td>
+<?php
 /* Coletando nome da Empresa de acordo com o id da empresa contido no ticket e exibindo somente para o adm */
 
         $idEmpresa = $reg2['id_empresa'];
         $con3 = "SELECT * FROM tb_empresa WHERE id_empresa = '$idEmpresa'";
-            $res3 = $link->query($con3);
-                while($reg3 = $res3->fetch_array()){$nomeEmpresa = $reg3['nm_empresa'];};
-            if($logado == "Byte OS"){echo "<td>".$nomeEmpresa."</td>";};
+        $res3 = $link->query($con3);
+            while($reg3 = $res3->fetch_array()){$nomeEmpresa = $reg3['nm_empresa'];};
+                if($logado == "Byte OS"){echo "<td>".$nomeEmpresa."</td>";};
 
 /*  Fim da coleta */
-
-echo	"<td>".$reg2['nm_equipamento']."</td>
-        <td>".$reg2['dt_dataAberto']."</td>
-        <td width='100px'".$cor.">".$reg2['te_situacao']."</td>
-        <td>".$reg2['dt_dataFechado']."</td>
-        <td width='90px'><a href='visualizarTicket.php?idTicket=".$reg2['id_ticket']."'title='Visualizar'><buttom type='button' class='btn btn-primary btn-sm'><i class='bi bi-eye'></i></buttom></a> ";
-
-        if($logado == "Byte OS" && $reg2['te_situacao'] == 'Em Aberto'){
-        echo"<a href='finalizarTicket.php?idTicket=".$reg2['id_ticket']."'title='Finalizar Ticket'><buttom type='button' class='btn btn-success btn-sm'><i class='bi bi-file-check'></i></buttom></a></td></tr>";}
-        else if($logado != "Byte OS"){echo"</td></tr>";};
-
-}
+?>
+    	<td><?=$reg2['nm_equipamento']?></td>
+        <td><?=$reg2['dt_dataAberto']?></td>
+        <td width="100px"<?=corstatus($reg2['te_situacao'])?>><?=$reg2['te_situacao']?></td>
+        <td><?=$reg2['dt_dataFechado']?></td>
+        <td width="90px"><a href="visualizarTicket.php?idTicket=<?=$reg2['id_ticket']?>" title="Visualizar"><buttom type="button" class="btn btn-primary btn-sm"><i class="bi bi-eye"></i></buttom></a>
+<?php
+/* Adicionando botão finalizar ticket caso usuário administrador e situação em aberto */
+        if($logado == "Byte OS" && $reg2['te_situacao'] == 'Em Aberto'){?>
+        <a href="finalizarTicket.php?idTicket=<?=$reg2['id_ticket']?>" title="Finalizar Ticket"><buttom type="button" class="btn btn-success btn-sm"><i class="bi bi-file-check"></i></buttom></a></td></tr>
+<?php
+    }else{echo"</td></tr>";};
+} /* End While */
 $link->close();
 ?>
                                 </tbody>
