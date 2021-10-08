@@ -1,60 +1,30 @@
 <?php	/* Desenvolvido por Tiago Rodrigues */
-	session_start();
-
-	if((!isset($_SESSION['nome']))){
-		header('location: index.php');
-	}
-
-	$logado = $_SESSION['nome'];	
-	
-	if($logado != "Byte OS"){
-		echo "<style>#adm{display: none;}</style>";
-	}
 
     $pagina = "inicio";
 
+    include "session.php";
 	include "conecta.php";
+    include "funcoes.php";
+
+    $idEmpresa = idEmpresa($logado);
+	$nunTicketsAberto = nunTicketAberto($idEmpresa);
+	$nunTicketsEncerrado = nunTicketEncerrado($idEmpresa);
 
 	if($logado != "Byte OS"){
 
-	$con0 = "SELECT * FROM tb_empresa WHERE nm_empresa = '$logado'";
-	$res0 = $link->query($con0);
-
-	while($reg0 = $res0->fetch_array()){
-		$idEmpresa = $reg0['id_empresa'];
-	};
-
-	$con1 = "SELECT * FROM tb_ticket WHERE te_situacao = 'Em Aberto' AND id_empresa = '$idEmpresa'";
-	$res1 = $link->query($con1);
-	$reg1 = $res1->num_rows;
-
-	$con2 = "SELECT * FROM tb_ticket WHERE te_situacao = 'Encerrada' AND id_empresa = '$idEmpresa'";
-	$res2 = $link->query($con2);
-	$reg2 = $res2->num_rows;
-
-    $con2 = "SELECT * FROM tb_ticket WHERE id_empresa='$idEmpresa' ORDER BY id_ticket DESC LIMIT 3";
+    $con = "SELECT * FROM tb_ticket WHERE id_empresa='$idEmpresa' ORDER BY id_ticket DESC LIMIT 3";
 	
-	$res = $link->query($con2);
+	$res = $link->query($con);
 
 }else{
 
-	$con1 = "SELECT * FROM tb_ticket WHERE te_situacao = 'Em Aberto'";
-	$res1 = $link->query($con1);
-	$reg1 = $res1->num_rows;
+    $con = "SELECT * FROM tb_ticket ORDER BY id_ticket DESC LIMIT 3";
 
-	$con2 = "SELECT * FROM tb_ticket WHERE te_situacao = 'Encerrada'";
-	$res2 = $link->query($con2);
-	$reg2 = $res2->num_rows;
-
-    $con2 = "SELECT * FROM tb_ticket ORDER BY id_ticket DESC LIMIT 3";
-
-	$res = $link->query($con2);
+	$res = $link->query($con);
 
 }
 
-$soma = $reg1 + $reg2;
-
-include "situacaoTicket.php";
+$totalTickets = $nunTicketsAberto + $nunTicketsEncerrado;
 
 ?>
 
@@ -104,14 +74,14 @@ include "situacaoTicket.php";
                 <div class="col col-lg-3">
                     <div class="card">
                         <div class="card-header">
-                            Total de Tickets = <?=$soma?>
+                            Total de Tickets = <?=$totalTickets?>
                         </div>
                         <div class="card-body">
                             <div class="alert alert-danger" role="alert">
-                                Em Aberto = <?=$reg1?>
+                                Em Aberto = <?=$nunTicketsAberto?>
                             </div>
                             <div class="alert alert-success" role="alert">
-                                Encerrado = <?=$reg2?>
+                                Encerrado = <?=$nunTicketsEncerrado?>
                             </div>
                         </div>
                     </div>
@@ -139,30 +109,26 @@ include "situacaoTicket.php";
                                 </thead>
                                     <tbody>
                                     
-<?php   while($reg2 = $res->fetch_array()){?>
+<?php   while($reg = $res->fetch_array()){?>
 
         <tr>
-            <td scope='row'><?=$reg2['id_ticket']?></td>
+            <td scope='row'><?=$reg['id_ticket']?></td>
 <?php
 /* Coletando nome da Empresa de acordo com o id da empresa contido no ticket e exibindo somente para o adm */
 
-        $idEmpresa = $reg2['id_empresa'];
-        $con3 = "SELECT * FROM tb_empresa WHERE id_empresa = '$idEmpresa'";
-        $res3 = $link->query($con3);
-            while($reg3 = $res3->fetch_array()){$nomeEmpresa = $reg3['nm_empresa'];};
-                if($logado == "Byte OS"){echo "<td>".$nomeEmpresa."</td>";};
+    if($logado == "Byte OS"){echo "<td>".nomeEmpresa($reg['id_empresa'])."</td>";};
 
 /*  Fim da coleta */
 ?>
-    	<td><?=$reg2['nm_equipamento']?></td>
-        <td><?=$reg2['dt_dataAberto']?></td>
-        <td width="100px"<?=corstatus($reg2['te_situacao'])?>><?=$reg2['te_situacao']?></td>
-        <td><?=$reg2['dt_dataFechado']?></td>
-        <td width="90px"><a href="visualizarTicket.php?idTicket=<?=$reg2['id_ticket']?>" title="Visualizar"><buttom type="button" class="btn btn-primary btn-sm"><i class="bi bi-eye"></i></buttom></a>
+    	<td><?=$reg['nm_equipamento']?></td>
+        <td><?=$reg['dt_dataAberto']?></td>
+        <td width="100px"<?=corstatus($reg['te_situacao'])?>><?=$reg['te_situacao']?></td>
+        <td><?=$reg['dt_dataFechado']?></td>
+        <td width="90px"><a href="visualizarTicket.php?idTicket=<?=$reg['id_ticket']?>" title="Visualizar"><buttom type="button" class="btn btn-primary btn-sm"><i class="bi bi-eye"></i></buttom></a>
 <?php
 /* Adicionando botão finalizar ticket caso usuário administrador e situação em aberto */
-        if($logado == "Byte OS" && $reg2['te_situacao'] == 'Em Aberto'){?>
-        <a href="finalizarTicket.php?idTicket=<?=$reg2['id_ticket']?>" title="Finalizar Ticket"><buttom type="button" class="btn btn-success btn-sm"><i class="bi bi-file-check"></i></buttom></a></td></tr>
+        if($logado == "Byte OS" && $reg['te_situacao'] == 'Em Aberto'){?>
+        <a href="finalizarTicket.php?idTicket=<?=$reg['id_ticket']?>" title="Finalizar Ticket"><buttom type="button" class="btn btn-success btn-sm"><i class="bi bi-file-check"></i></buttom></a></td></tr>
 <?php
     }else{echo"</td></tr>";};
 } /* End While */
@@ -175,21 +141,11 @@ $link->close();
                 </div>
             </div>
         </div>
-
     </main>
 
-    <!-- Optional JavaScript; choose one of the two! -->
-
-    <!-- Option 1: Bootstrap Bundle with Popper -->
+<!-- Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf" crossorigin="anonymous">
     </script>
-
-    <!-- Option 2: Separate Popper and Bootstrap JS -->
-    <!--
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js" integrity="sha384-SR1sx49pcuLnqZUnnPwx6FCym0wLsk5JZuNx2bPPENzswTNFaQU1RDvt3wT4gWFG" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.min.js" integrity="sha384-j0CNLUeiqtyaRmlzUHCPZ+Gy5fQu0dQ6eZ/xAww941Ai1SxSY+0EQqNXNE6DZiVc" crossorigin="anonymous"></script>
-    -->
 </body>
-
 </html>
