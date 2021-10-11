@@ -1,25 +1,11 @@
 <?php
 
-	session_start();
-
-	if((!isset($_SESSION['nome']))){
-		header('location: index.php');
-	}
-
-	$logado = $_SESSION['nome'];	
-	
-	if($logado != "Byte OS"){
-		header('location: index.php');
-	}
+include "session.php";
+include "conecta.php";
 
 $pagina = "consultarEmpresa";
 
-include "conecta.php";
-
-	$con = "SELECT * FROM tb_empresa";
-	$res = $link->query($con);
-
- ?>
+?>
 
 <!doctype html>
 <html lang="pt-br">
@@ -64,20 +50,23 @@ include "conecta.php";
                                 </thead>
                                 <tbody>
 
-                                    <?php while($reg = $res->fetch_array()){
+            <?php 
+            	$con = "SELECT * FROM tb_empresa";
+                $res = $link->query($con);
+                while($reg = $res->fetch_array()){?>
 
-    echo	"<tr>
-            <th scope='row'>".$reg['id_empresa']."</td>
-            <td>".$reg['nm_empresa']."</td>
-            <td>".$reg['nm_contato']."</td>
-            <td>".$reg['fn_empresa']."</td>
-            <td><a href='visualizarEmpresa.php?idEmpresa=".$reg['id_empresa']."' title='Visualizar'><buttom type='button' class='btn btn-primary btn-sm'><i class='bi bi-eye'></i></buttom></a>
-            <a href='editarEmpresa.php?idEmpresa=".$reg['id_empresa']."' title='Editar'><buttom type='button' class='btn btn-danger btn-sm'><i class='bi bi-pencil'></i></buttom></a>
-            <a href='historicoEmpresa.php?idEmpresa=".$reg['id_empresa']."' title='Histórico'><buttom type='button' class='btn btn-secondary btn-sm'><i class='bi bi-clipboard-data'></i></buttom></a></td>
-            </tr>";};
-
-$link->close();
-?>
+            <tr>
+                <th scope='row'><?=$reg['id_empresa']?></td>
+                <td><?=$reg['nm_empresa']?></td>
+                <td><?=$reg['nm_contato']?></td>
+                <td><?=$reg['fn_empresa']?></td>
+                <td><a href="visualizarEmpresa.php?idEmpresa=<?=$reg['id_empresa']?>" title="Visualizar"><buttom type="button" class="btn btn-primary btn-sm"><i class="bi bi-eye"></i></buttom></a>
+                <a href="editarEmpresa.php?idEmpresa=<?=$reg['id_empresa']?>" title="Editar"><buttom type="button" class="btn btn-danger btn-sm"><i class="bi bi-pencil"></i></buttom></a>
+                <a href="historicoEmpresa.php?idEmpresa=<?=$reg['id_empresa']?>" title="Histórico"><buttom type="button" class="btn btn-secondary btn-sm"><i class="bi bi-clipboard-data"></i></buttom></a></td>
+            </tr>
+<?php
+    } /* End While */
+    $link->close();?>
                                 </tbody>
                             </table>
                         </div>
@@ -87,18 +76,9 @@ $link->close();
         </div>
     </main>
 
-    <!-- Optional JavaScript; choose one of the two! -->
-
-    <!-- Option 1: Bootstrap Bundle with Popper -->
+    <!-- Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf" crossorigin="anonymous">
     </script>
-
-    <!-- Option 2: Separate Popper and Bootstrap JS -->
-    <!--
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js" integrity="sha384-SR1sx49pcuLnqZUnnPwx6FCym0wLsk5JZuNx2bPPENzswTNFaQU1RDvt3wT4gWFG" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.min.js" integrity="sha384-j0CNLUeiqtyaRmlzUHCPZ+Gy5fQu0dQ6eZ/xAww941Ai1SxSY+0EQqNXNE6DZiVc" crossorigin="anonymous"></script>
-    -->
 </body>
-
 </html>

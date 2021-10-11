@@ -1,58 +1,37 @@
 <?php
 
-	session_start();
-
-	if((!isset($_SESSION['nome']))){
-		header('location: index.php');
-	}
-
-	$logado = $_SESSION['nome'];	
-	
-	if($logado != "Byte OS"){
-		echo "<style>#adm{display: none;}</style>";
-	}
+    include "session.php";
+    include "conecta.php";
+    include "funcoes.php";
 
     $pagina = "consultarTicket";
 
-$idTicket = $_POST['idTicket'];
-
-
-include "conecta.php";
+    $idTicket = $_POST['idTicket'];
 	
 	if($logado != "Byte OS"){
 
-	$con1 = "SELECT * FROM tb_empresa WHERE nm_empresa = '$logado'";
-	$res1 = $link->query($con1);
+	$idEmpresa = idEmpresa($logado);
 
-	while($reg1 = $res1->fetch_array()){
-		$idEmpresa = $reg1['id_empresa'];
-	}
-
-	$con2 = "SELECT * FROM tb_ticket WHERE id_ticket='$idTicket'";
+	$con = "SELECT * FROM tb_ticket WHERE id_ticket='$idTicket'";
 	
-	$res2 = $link->query($con2);
+	$res = $link->query($con);
 
-	if ($res2->num_rows == 0) {	
+    while($reg = $res->fetch_array()){
+        $idEmpresaTicket = $reg['id_empresa'];
+    }
+
+	if ($res->num_rows == 0 || $idEmpresa != $idEmpresaTicket) {       
 	
-		echo "<script type='text/javascript'>alert('Ticket não encontrado!!!');window.location=('sistema.php');</script>";
+		echo "<script type='text/javascript'>alert('Ticket não encontrado ou não pertence a sua empresa.');window.location=('sistema.php');</script>";
 	}
 
-	while($reg2 = $res2->fetch_array()){
-		$idEmpresaTicket = $reg2['id_empresa'];
-	}
-
-	if($idEmpresa != $idEmpresaTicket){
-
-		echo "<script type='text/javascript'>alert('Este Ticket não pertence a sua empresa!!!');window.location=('sistema.php');</script>";
-
-	}
 }else 
 
-	$con2 = "SELECT * FROM tb_ticket WHERE id_ticket='$idTicket'";
+	$con = "SELECT * FROM tb_ticket WHERE id_ticket='$idTicket'";
 	
-	$res2 = $link->query($con2);
+	$res = $link->query($con);
 
-if ($res2->num_rows == 0) {	
+if ($res->num_rows == 0) {	
 		
 		echo "<script type='text/javascript'>alert('Ticket não encontrado!!!');window.location=('sistema.php');</script>";
 	
@@ -103,43 +82,35 @@ else{ ?>
                                         <th scope="col">Opções</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <?php   while($reg2 = $res2->fetch_array()){
+                            <tbody>
 
-		if($reg2['te_situacao'] == 'Em Aberto'){
-			$cor = 'class="text-danger"';
-		}  if($reg2['te_situacao'] == 'Encerrada'){
-			$cor = 'class="text-success"';
-		}
+        <?php   while($reg = $res->fetch_array()){?>
 	
-		echo	"<tr>
-				<td scope='row'>".$reg2['id_ticket']."</td>";
+		    <tr>
+				<td scope="row"><?=$reg['id_ticket']?></td>
+<?php
+/* Coletando nome da Empresa de acordo com o id da empresa contido no ticket e exibindo somente para o adm */
 
-		/* Coletando nome da Empresa de acordo com o id da empresa contido no ticket e exibindo somente para o adm */
+	if($logado == "Byte OS"){echo "<td>".nomeEmpresa($reg['id_empresa'])."</td>";};
 
-				$idEmpresa = $reg2['id_empresa'];
-				$con3 = "SELECT * FROM tb_empresa WHERE id_empresa = '$idEmpresa'";
-					$res3 = $link->query($con3);
-						while($reg3 = $res3->fetch_array()){$nomeEmpresa = $reg3['nm_empresa'];};
-					if($logado == "Byte OS"){echo "<td>".$nomeEmpresa."</td>";};
+/*  Fim da coleta */
+?>
+		        <td><?=$reg['nm_equipamento']?></td>
+				<td><?=$reg['dt_dataAberto']?></td>
+				<td width="100px" <?=corstatus($reg['te_situacao'])?>><?=$reg['te_situacao']?></td>
+				<td><?=$reg['dt_dataFechado']?></td>
+				<td width="90px"><a href="visualizarTicket.php?idTicket=<?=$reg['id_ticket']?>" title="Visualizar"><buttom type="button" class="btn btn-primary btn-sm"><i class="bi bi-eye"></i></buttom></a>
 
-		/*  Fim da coleta */
-
-		echo	"<td>".$reg2['nm_equipamento']."</td>
-				<td>".$reg2['dt_dataAberto']."</td>
-				<td width='100px'".$cor.">".$reg2['te_situacao']."</td>
-				<td>".$reg2['dt_dataFechado']."</td>
-				<td width='90px'><a href='visualizarTicket.php?idTicket=".$reg2['id_ticket']."'title='Visualizar'><buttom type='button' class='btn btn-primary btn-sm'><i class='bi bi-eye'></i></buttom></a> ";
-
-				if($logado == "Byte OS" && $reg2['te_situacao'] == 'Em Aberto'){
-				echo"<a href='finalizarTicket.php?idTicket=".$reg2['id_ticket']."'title='Finalizar Ticket'><buttom type='button' class='btn btn-success btn-sm'><i class='bi bi-file-check'></i></buttom></a></td></tr>";}
-				else if($logado != "Byte OS"){echo"</td></tr>";};
-		
-}
-		}/* Fim do else */
+<?php
+/* Adicionando botão finalizar ticket caso usuário administrador e situação em aberto */
+    if($logado == "Byte OS" && $reg['te_situacao'] == 'Em Aberto'){?>
+    <a href="finalizarTicket.php?idTicket=<?=$reg['id_ticket']?>" title="Finalizar Ticket"><buttom type="button" class="btn btn-success btn-sm"><i class="bi bi-file-check"></i></buttom></a></td></tr>
+<?php
+    }else{echo"</td></tr>";};
+} /* End While */
+    } /* End Else */
 $link->close();
 ?>
-
 
 
                                 </tbody>
