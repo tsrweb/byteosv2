@@ -10,6 +10,17 @@ function corstatus ($status){
     return $cor;
 }
 
+function alertaStatus ($status){
+
+    if($status == 'Em Aberto'){
+        $alerta = 'class="alert alert-danger text-center"';
+    }  if($status == 'Encerrada'){
+        $alerta = 'class="alert alert-success text-center"';
+    }
+
+    return $alerta;
+}
+
 function nunTicketAberto ($idEmpresa){
 
     include "conecta.php";
